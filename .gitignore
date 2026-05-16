@@ -1,0 +1,7 @@
+# Ignore Java Compiled Binaries
+*.class
+# Ignor Python bytecode and caches
+__pycache__/
+*.pyc
+# Ignore Vim swap files
+*.swp 
