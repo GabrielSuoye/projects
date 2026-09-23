@@ -1,23 +1,25 @@
-from datetime import timedelta, timezone, datetime
+from datetime import datetime, timedelta, timezone
 from typing import Annotated, cast
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from pydantic.main import BaseModel
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from database import SessionLocal
 from models import Users
-from passlib.context import CryptContext
+from argon2 import PasswordHasher
 import jwt
+
 
 SECRET_KEY = "d5efbaafe996260669e6e99a84afd2742c2298ebf482d592b73cf5fd36400c1d"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter(prefix="/auth/v2", tags=["auth"])
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/v2/token")
+
+ph = PasswordHasher(memory_cost=65536, time_cost=3, parallelism=4)
 
 
 class CreateUserRequest(BaseModel):
@@ -47,12 +49,7 @@ db_dependency = Annotated[Session, Depends(get_db)]
 
 # Hashing Helpers
 def hash_password(password: str) -> str:
-    if len(password.encode("utf-8")) > 72:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Password is too long for bcrypt setup.",
-        )
-    return pwd_context.hash(password)
+    return ph.hash(password)
 
 
 def authenticate_user(username: str, password: str, db: db_dependency):
@@ -60,7 +57,7 @@ def authenticate_user(username: str, password: str, db: db_dependency):
     if not user:
         return False
 
-    if not pwd_context.verify(password, user.hashed_password):
+    if not ph.verify(password, user.hashed_password):
         return False
 
     return user
@@ -97,7 +94,7 @@ async def create_user(db: db_dependency, create_user_request: CreateUserRequest)
         username=create_user_request.username,
         first_name=create_user_request.first_name,
         last_name=create_user_request.last_name,
-        hashed_password=pwd_context.hash(create_user_request.password),
+        hashed_password=ph.hash(create_user_request.password),
         role=create_user_request.role,
         is_active=True,
     )
