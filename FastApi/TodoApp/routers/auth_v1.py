@@ -14,7 +14,7 @@ SECRET_KEY = "d5efbaafe996260669e6e99a84afd2742c2298ebf482d592b73cf5fd36400c1d"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter(prefix="/auth/v1", tags=["auth"])
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/v1/token")

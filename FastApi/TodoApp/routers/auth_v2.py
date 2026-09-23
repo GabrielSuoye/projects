@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from database import SessionLocal
 from models import Users
 from argon2 import PasswordHasher
+from argon2.exceptions import InvalidHashError, VerifyMismatchError
 import jwt
 
 
@@ -57,7 +58,10 @@ def authenticate_user(username: str, password: str, db: db_dependency):
     if not user:
         return False
 
-    if not ph.verify(password, user.hashed_password):
+    try:
+        if not ph.verify(password, user.hashed_password):
+            return False
+    except (InvalidHashError, VerifyMismatchError):
         return False
 
     return user

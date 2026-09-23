@@ -1,3 +1,5 @@
+from sqlalchemy.orm import Mapped, mapped_column
+
 from database import Base
 from sqlalchemy import Column, ForeignKey, Integer, String, Boolean
 
@@ -10,7 +12,7 @@ class Users(Base):
     username = Column(String, unique=True)
     first_name = Column(String)
     last_name = Column(String)
-    hashed_password = Column(String)
+    hashed_password: Mapped[str] = mapped_column(String)
     is_active = Column(Boolean, default=True)
     role = Column(String)
 
