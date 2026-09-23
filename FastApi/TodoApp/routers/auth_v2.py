@@ -59,7 +59,7 @@ def authenticate_user(username: str, password: str, db: db_dependency):
         return False
 
     try:
-        if not ph.verify(password, user.hashed_password):
+        if not ph.verify(user.hashed_password, password):
             return False
     except (InvalidHashError, VerifyMismatchError):
         return False
